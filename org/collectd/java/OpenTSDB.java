@@ -19,8 +19,8 @@ import org.collectd.api.CollectdWriteInterface;
 
 public class OpenTSDB implements CollectdWriteInterface, CollectdInitInterface
 {
-    private DataOutputStream _out;
-    private Socket           socket;
+    private PrintStream _out;
+    private Socket      socket;
 
     public OpenTSDB ()
     {
@@ -31,9 +31,8 @@ public class OpenTSDB implements CollectdWriteInterface, CollectdInitInterface
     public int init ()
     {
         try {
-          socket = new Socket("127.0.0.1", 4243);
-          _out   = new DataOutputStream(socket.getOutputStream());
-          _out.writeBytes("stats\n");
+          socket = new Socket("127.0.0.1", 4242);
+          _out   = new PrintStream(socket.getOutputStream());
         } catch (UnknownHostException e) {
           System.out.println("Couldn't establish connection!");
           System.out.println(e);
@@ -104,7 +103,7 @@ public class OpenTSDB implements CollectdWriteInterface, CollectdInitInterface
         sb.append(name).append(' ');
 
         // Time
-        long time = vl.getTime();
+        long time = vl.getTime() / 1000;
         sb.append(time).append(' ');
 
         // Value
@@ -113,22 +112,15 @@ public class OpenTSDB implements CollectdWriteInterface, CollectdInitInterface
 
         // Host
         String host = vl.getHost();
-        sb.append("host=").append(host).append(",");
+        sb.append("host=").append(host).append(" ");
 
         // Meta
         sb.append("source=collectd");
-        sb.append("\n");
 
         String output = sb.toString();
 
         // Send to OpenTSDB
-        try {
-          _out.writeBytes(output);
-        } catch (java.io.IOException e) {
-          System.out.println("Couldn't send data!");
-          System.out.println(e);
-        //} catch (java.net.SocketException e) {
-        }
+        _out.println(output);
     }
 
     return(0);
