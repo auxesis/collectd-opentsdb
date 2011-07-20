@@ -67,13 +67,29 @@ public class OpenTSDB implements CollectdWriteInterface, CollectdInitInterface
         sb.append("put ");
 
         // Metric name
-        String    name, pointName;
+        String    name, pointName,
+                  plugin, pluginInstance,
+                  type, typeInstance;
         ArrayList parts = new ArrayList();
 
-        parts.add(vl.getPlugin());
-        parts.add(vl.getPluginInstance());
-        parts.add(vl.getType());
-        parts.add(vl.getTypeInstance());
+        plugin         = vl.getPlugin();
+        pluginInstance = vl.getPluginInstance();
+        type           = vl.getType();
+        typeInstance   = vl.getTypeInstance();
+
+        // FIXME: refactor to switch?
+        if ( plugin != null ) {
+            parts.add(plugin);
+        }
+        if ( pluginInstance != null ) {
+            parts.add(pluginInstance);
+        }
+        if ( type != null ) {
+            parts.add(type);
+        }
+        if ( typeInstance != null) {
+            parts.add(typeInstance);
+        }
 
         pointName = ds.get(i).getName();
         if (!pointName.equals("value")) {
@@ -81,10 +97,9 @@ public class OpenTSDB implements CollectdWriteInterface, CollectdInitInterface
         }
 
         // Consolidate the list of labels
-        ArrayList uniques = new ArrayList(new LinkedHashSet(parts));
-        uniques.removeAll(Collections.singletonList(null));
-        uniques.removeAll(Collections.singletonList(""));
-        name = join(uniques, ".");
+        parts.removeAll(Collections.singletonList(null));
+        parts.removeAll(Collections.singletonList(""));
+        name = join(parts, ".");
 
         sb.append(name).append(' ');
 
