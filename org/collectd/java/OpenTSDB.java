@@ -6,19 +6,54 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.io.*;
+import java.net.*;
+
 import org.collectd.api.Collectd;
 import org.collectd.api.ValueList;
 import org.collectd.api.DataSet;
 import org.collectd.api.DataSource;
+import org.collectd.api.CollectdInitInterface;
 import org.collectd.api.CollectdWriteInterface;
 
 
-public class OpenTSDB implements CollectdWriteInterface
+public class OpenTSDB implements CollectdWriteInterface, CollectdInitInterface
 {
-  public OpenTSDB ()
-  {
-    Collectd.registerWrite ("OpenTSDB", this);
-  }
+    private DataOutputStream _out;
+    private Socket           socket;
+
+    public OpenTSDB ()
+    {
+        Collectd.registerInit  ("OpenTSDB", this);
+        Collectd.registerWrite ("OpenTSDB", this);
+    }
+
+    public int init ()
+    {
+        try {
+          socket = new Socket("127.0.0.1", 4243);
+          _out   = new DataOutputStream(socket.getOutputStream());
+          _out.writeBytes("stats\n");
+        } catch (UnknownHostException e) {
+          System.out.println("Couldn't establish connection!");
+          System.out.println(e);
+          System.exit(1);
+        } catch (IOException e) {
+          System.out.println("Couldn't send data!");
+          System.out.println(e);
+          System.exit(1);
+        }
+
+
+        /*
+        out.close();
+        in.close();
+        stdIn.close();
+        echoSocket.close();
+        */
+
+        return(0);
+    }
 
   public int write (ValueList vl)
   {
@@ -67,9 +102,18 @@ public class OpenTSDB implements CollectdWriteInterface
 
         // Meta
         sb.append("source=collectd");
+        sb.append("\n");
 
         String output = sb.toString();
-        System.out.println(output);
+
+        // Send to OpenTSDB
+        try {
+          _out.writeBytes(output);
+        } catch (java.io.IOException e) {
+          System.out.println("Couldn't send data!");
+          System.out.println(e);
+        //} catch (java.net.SocketException e) {
+        }
     }
 
     return(0);
