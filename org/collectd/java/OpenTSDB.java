@@ -13,32 +13,41 @@ import org.collectd.api.Collectd;
 import org.collectd.api.ValueList;
 import org.collectd.api.DataSet;
 import org.collectd.api.DataSource;
+import org.collectd.api.CollectdConfigInterface;
 import org.collectd.api.CollectdInitInterface;
 import org.collectd.api.CollectdWriteInterface;
+import org.collectd.api.OConfigValue;
+import org.collectd.api.OConfigItem;
 
 
-public class OpenTSDB implements CollectdWriteInterface, CollectdInitInterface
+public class OpenTSDB implements CollectdWriteInterface,
+    CollectdInitInterface,
+    CollectdConfigInterface
 {
+    private String      server = "localhost";
+    private String      port   = "4242";
     private PrintStream _out;
     private Socket      socket;
 
     public OpenTSDB ()
     {
-        Collectd.registerInit  ("OpenTSDB", this);
-        Collectd.registerWrite ("OpenTSDB", this);
+        Collectd.registerInit   ("OpenTSDB", this);
+        Collectd.registerWrite  ("OpenTSDB", this);
+        Collectd.registerConfig ("OpenTSDB", this);
     }
 
     public int init ()
     {
         try {
-          socket = new Socket("127.0.0.1", 4242);
+          Collectd.logInfo ("OpenTSDB plugin: server: " + server + ", port: " + port);
+          socket = new Socket (server, 4242);
           _out   = new PrintStream(socket.getOutputStream());
         } catch (UnknownHostException e) {
-          System.out.println("Couldn't establish connection!");
+          Collectd.logInfo ("Couldn't establish connection!");
           System.out.println(e);
           System.exit(1);
         } catch (IOException e) {
-          System.out.println("Couldn't send data!");
+          Collectd.logInfo ("Couldn't send data!");
           System.out.println(e);
           System.exit(1);
         }
@@ -137,4 +146,42 @@ public class OpenTSDB implements CollectdWriteInterface, CollectdInitInterface
       }
       return buffer.toString();
   }
+
+  public int config (OConfigItem ci) /* {{{ */
+  {
+    List<OConfigItem> children;
+    int i;
+
+    Collectd.logDebug ("OpenTSDB plugin: config: ci = " + ci + ";");
+
+    children = ci.getChildren ();
+    for (i = 0; i < children.size (); i++)
+    {
+      List<OConfigValue> values;
+      OConfigItem child;
+      String key;
+
+      child = children.get (i);
+      key   = child.getKey ();
+      if (key.equalsIgnoreCase ("Server"))
+      {
+        values = child.getValues();
+        if (values.size () != 2)
+        {
+            Collectd.logError ("OpenTSDB plugin: " + key +
+                "configuration option needs exactly two arguments: server + port");
+            return (1);
+        } else {
+            server = values.get(0).toString();
+            port   = values.get(1).toString();
+        }
+      }
+      else
+      {
+        Collectd.logError ("OpenTSDB plugin: Unknown config option: " + key);
+      }
+    } /* for (i = 0; i < children.size (); i++) */
+
+    return (0);
+  } /* }}} int config */
 }
