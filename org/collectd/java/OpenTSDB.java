@@ -68,10 +68,11 @@ public class OpenTSDB implements CollectdWriteInterface,
     List<DataSource> ds = vl.getDataSource();
     List<Number> values = vl.getValues();
     int size            = values.size();
+    StringBuffer sb = new StringBuffer();
 
     for (int i=0; i<size; i++) {
         // Buffer
-        StringBuffer sb = new StringBuffer();
+        sb.setLength(0);
         sb.append("put ");
 
         // Metric name
