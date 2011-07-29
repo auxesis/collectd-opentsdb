@@ -63,7 +63,7 @@ public class OpenTSDB implements CollectdWriteInterface,
 
   public int write (ValueList vl)
   {
-    List<DataSource> ds = vl.getDataSource();
+    List<DataSource> ds = vl.getDataSet().getDataSources();
     List<Number> values = vl.getValues();
     int size            = values.size();
     StringBuffer sb = new StringBuffer();
