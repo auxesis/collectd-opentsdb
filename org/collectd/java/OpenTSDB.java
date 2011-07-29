@@ -77,7 +77,7 @@ public class OpenTSDB implements CollectdWriteInterface,
         String    name, pointName,
                   plugin, pluginInstance,
                   type, typeInstance;
-        ArrayList parts = new ArrayList();
+        ArrayList<String> parts = new ArrayList<String>();
 
         plugin         = vl.getPlugin();
         pluginInstance = vl.getPluginInstance();
@@ -134,9 +134,9 @@ public class OpenTSDB implements CollectdWriteInterface,
     return(0);
   }
 
-  public static String join(Collection s, String delimiter) {
+  public static String join(Collection<String> s, String delimiter) {
       StringBuffer buffer = new StringBuffer();
-      Iterator iter = s.iterator();
+      Iterator<String> iter = s.iterator();
       while (iter.hasNext()) {
           buffer.append(iter.next());
           if (iter.hasNext()) {
