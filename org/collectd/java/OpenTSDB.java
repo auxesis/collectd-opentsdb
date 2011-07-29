@@ -85,16 +85,16 @@ public class OpenTSDB implements CollectdWriteInterface,
         typeInstance   = vl.getTypeInstance();
 
         // FIXME: refactor to switch?
-        if ( plugin != null ) {
+        if ( plugin != null && !plugin.isEmpty() ) {
             parts.add(plugin);
         }
-        if ( pluginInstance != null ) {
+        if ( pluginInstance != null && !plugin.isEmpty() ) {
             parts.add(pluginInstance);
         }
         if ( type != null ) {
             parts.add(type);
         }
-        if ( typeInstance != null) {
+        if ( typeInstance != null && !plugin.isEmpty() ) {
             parts.add(typeInstance);
         }
 
@@ -103,9 +103,6 @@ public class OpenTSDB implements CollectdWriteInterface,
           parts.add(pointName);
         }
 
-        // Consolidate the list of labels
-        parts.removeAll(Collections.singletonList(null));
-        parts.removeAll(Collections.singletonList(""));
         name = join(parts, ".");
 
         sb.append(name).append(' ');
