@@ -43,12 +43,10 @@ public class OpenTSDB implements CollectdWriteInterface,
           socket = new Socket (server, 4242);
           _out   = new PrintStream(socket.getOutputStream());
         } catch (UnknownHostException e) {
-          Collectd.logInfo ("Couldn't establish connection!");
-          System.out.println(e);
+          Collectd.logError ("Couldn't establish connection: " + e.getMessage());
           System.exit(1);
         } catch (IOException e) {
-          Collectd.logInfo ("Couldn't send data!");
-          System.out.println(e);
+          Collectd.logError ("Couldn't send data: " + e.getMessage());
           System.exit(1);
         }
 
