@@ -43,12 +43,10 @@ public class OpenTSDB implements CollectdWriteInterface,
           socket = new Socket (server, 4242);
           _out   = new PrintStream(socket.getOutputStream());
         } catch (UnknownHostException e) {
-          Collectd.logInfo ("Couldn't establish connection!");
-          System.out.println(e);
+          Collectd.logError ("Couldn't establish connection: " + e.getMessage());
           System.exit(1);
         } catch (IOException e) {
-          Collectd.logInfo ("Couldn't send data!");
-          System.out.println(e);
+          Collectd.logError ("Couldn't send data: " + e.getMessage());
           System.exit(1);
         }
 
@@ -65,7 +63,7 @@ public class OpenTSDB implements CollectdWriteInterface,
 
   public int write (ValueList vl)
   {
-    List<DataSource> ds = vl.getDataSource();
+    List<DataSource> ds = vl.getDataSet().getDataSources();
     List<Number> values = vl.getValues();
     int size            = values.size();
     StringBuffer sb = new StringBuffer();
@@ -79,7 +77,7 @@ public class OpenTSDB implements CollectdWriteInterface,
         String    name, pointName,
                   plugin, pluginInstance,
                   type, typeInstance;
-        ArrayList parts = new ArrayList();
+        ArrayList<String> parts = new ArrayList<String>();
 
         plugin         = vl.getPlugin();
         pluginInstance = vl.getPluginInstance();
@@ -87,16 +85,16 @@ public class OpenTSDB implements CollectdWriteInterface,
         typeInstance   = vl.getTypeInstance();
 
         // FIXME: refactor to switch?
-        if ( plugin != null ) {
+        if ( plugin != null && !plugin.isEmpty() ) {
             parts.add(plugin);
         }
-        if ( pluginInstance != null ) {
+        if ( pluginInstance != null && !plugin.isEmpty() ) {
             parts.add(pluginInstance);
         }
         if ( type != null ) {
             parts.add(type);
         }
-        if ( typeInstance != null) {
+        if ( typeInstance != null && !plugin.isEmpty() ) {
             parts.add(typeInstance);
         }
 
@@ -105,9 +103,6 @@ public class OpenTSDB implements CollectdWriteInterface,
           parts.add(pointName);
         }
 
-        // Consolidate the list of labels
-        parts.removeAll(Collections.singletonList(null));
-        parts.removeAll(Collections.singletonList(""));
         name = join(parts, ".");
 
         sb.append(name).append(' ');
@@ -136,9 +131,9 @@ public class OpenTSDB implements CollectdWriteInterface,
     return(0);
   }
 
-  public static String join(Collection s, String delimiter) {
+  public static String join(Collection<String> s, String delimiter) {
       StringBuffer buffer = new StringBuffer();
-      Iterator iter = s.iterator();
+      Iterator<String> iter = s.iterator();
       while (iter.hasNext()) {
           buffer.append(iter.next());
           if (iter.hasNext()) {
