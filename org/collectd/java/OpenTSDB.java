@@ -78,29 +78,33 @@ public class OpenTSDB implements CollectdWriteInterface,
                   plugin, pluginInstance,
                   type, typeInstance;
         ArrayList<String> parts = new ArrayList<String>();
+        ArrayList<String> tags = new ArrayList<String>();
 
         plugin         = vl.getPlugin();
         pluginInstance = vl.getPluginInstance();
         type           = vl.getType();
         typeInstance   = vl.getTypeInstance();
 
+        // Collectd.logInfo("plugin: " + plugin + " pluginInstance: " + pluginInstance + " type: " + type + " typeInstance: " + typeInstance);
+
         // FIXME: refactor to switch?
         if ( plugin != null && !plugin.isEmpty() ) {
             parts.add(plugin);
-        }
-        if ( pluginInstance != null && !plugin.isEmpty() ) {
-            parts.add(pluginInstance);
-        }
-        if ( type != null ) {
-            parts.add(type);
-        }
-        if ( typeInstance != null && !plugin.isEmpty() ) {
-            parts.add(typeInstance);
-        }
+            if ( pluginInstance != null && !pluginInstance.isEmpty() ) {
+                tags.add(plugin + "_instance=" + pluginInstance);
+            }
+            if ( type != null && !type.isEmpty()) {
+                tags.add(plugin + "_type=" + type);
+            }
+            if ( typeInstance != null && !typeInstance.isEmpty() ) {
+                tags.add(plugin + "_type_instance=" + typeInstance);
+            }
 
-        pointName = ds.get(i).getName();
-        if (!pointName.equals("value")) {
-          parts.add(pointName);
+            pointName = ds.get(i).getName();
+            if (!pointName.equals("value")) {
+              // Collectd.logInfo("pointName: " + pointName);
+              tags.add(plugin + "_point=" + pointName);
+            }
         }
 
         name = join(parts, ".");
@@ -122,9 +126,12 @@ public class OpenTSDB implements CollectdWriteInterface,
         // Meta
         sb.append("source=collectd");
 
+        sb.append(" ").append(join(tags, " "));
+
         String output = sb.toString();
 
         // Send to OpenTSDB
+        // Collectd.logInfo(output);
         _out.println(output);
     }
 
