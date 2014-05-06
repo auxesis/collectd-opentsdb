@@ -40,7 +40,7 @@ public class OpenTSDB implements CollectdWriteInterface,
     {
         try {
           Collectd.logInfo ("OpenTSDB plugin: server: " + server + ", port: " + port);
-          socket = new Socket (server, 4242);
+          socket = new Socket (server, port);
           _out   = new PrintStream(socket.getOutputStream());
         } catch (UnknownHostException e) {
           Collectd.logError ("Couldn't establish connection: " + e.getMessage());
